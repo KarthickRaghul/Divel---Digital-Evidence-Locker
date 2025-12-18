@@ -66,67 +66,9 @@ const Dashboard: React.FC = () => {
   return (
     <Layout>
       <div className="container py-8 space-y-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Case Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage and monitor all criminal cases in the system
-            </p>
-          </div>
-          {canUpload && (
-            <Button onClick={() => setUploadModalOpen(true)} size="lg" className="gap-2">
-              <Plus className="h-5 w-5" />
-              Upload Case
-            </Button>
-          )}
-        </div>
+        
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-card rounded-xl border border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <FileText className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Total Cases</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-warning/10 rounded-lg">
-                <AlertTriangle className="h-5 w-5 text-warning" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.underInvestigation}</p>
-                <p className="text-sm text-muted-foreground">Under Investigation</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-info/10 rounded-lg">
-                <Users className="h-5 w-5 text-info" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.pendingTrial}</p>
-                <p className="text-sm text-muted-foreground">Pending Trial</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-success/10 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.closed}</p>
-                <p className="text-sm text-muted-foreground">Closed/Convicted</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
 
         <CaseFilters
           filters={filters}
