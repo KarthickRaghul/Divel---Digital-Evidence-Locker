@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -13,6 +12,57 @@ import {
 import { mockCases, districts } from '@/data/mockCases';
 import { Map, Filter, TrendingUp, AlertTriangle } from 'lucide-react';
 
+/* ================= MAP IMPORTS ================= */
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+} from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import 'leaflet.heat';
+
+/* ================= FIX MARKER ICON ================= */
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+/* ================= HEAT LAYER ================= */
+const HeatLayer: React.FC<{ points: [number, number, number][] }> = ({ points }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    const heat = (L as any).heatLayer(points, {
+      radius: 35,
+      blur: 25,
+      maxZoom: 12,
+      gradient: {
+        0.2: 'yellow',
+        0.5: 'orange',
+        0.8: 'red',
+      },
+    });
+
+    heat.addTo(map);
+    return () => {
+      map.removeLayer(heat);
+    };
+  }, [map, points]);
+
+  return null;
+};
+
 interface HeatmapCell {
   district: string;
   count: number;
@@ -21,261 +71,168 @@ interface HeatmapCell {
 }
 
 const Heatmap: React.FC = () => {
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
-  const [timeFilter, setTimeFilter] = useState<string>('all');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [timeFilter, setTimeFilter] = useState('all');
 
-  // Calculate case counts by district
-  const districtCounts: HeatmapCell[] = districts.map((district) => {
-    const cases = mockCases.filter((c) => c.district === district);
-    const avgLat = cases.length > 0
-      ? cases.reduce((sum, c) => sum + c.latitude, 0) / cases.length
-      : 28.6139;
-    const avgLng = cases.length > 0
-      ? cases.reduce((sum, c) => sum + c.longitude, 0) / cases.length
-      : 77.209;
-    return {
-      district,
-      count: cases.length,
-      lat: avgLat,
-      lng: avgLng,
-    };
-  }).filter((d) => d.count > 0);
+  /* ================= DATA LOGIC (UNCHANGED) ================= */
+  const districtCounts: HeatmapCell[] = districts
+    .map((district) => {
+      const cases = mockCases.filter((c) => c.district === district);
+      const avgLat =
+        cases.length > 0
+          ? cases.reduce((s, c) => s + c.latitude, 0) / cases.length
+          : 28.6139;
+      const avgLng =
+        cases.length > 0
+          ? cases.reduce((s, c) => s + c.longitude, 0) / cases.length
+          : 77.209;
+
+      return {
+        district,
+        count: cases.length,
+        lat: avgLat,
+        lng: avgLng,
+      };
+    })
+    .filter((d) => d.count > 0);
 
   const maxCount = Math.max(...districtCounts.map((d) => d.count));
+  const selectedDistrictData = districtCounts.find(
+    (d) => d.district === selectedDistrict
+  );
 
-  const getHeatColor = (count: number) => {
-    const intensity = count / maxCount;
-    if (intensity > 0.7) return 'bg-destructive';
-    if (intensity > 0.4) return 'bg-warning';
-    return 'bg-success';
-  };
-
-  const selectedDistrictData = districtCounts.find((d) => d.district === selectedDistrict);
+  const heatPoints: [number, number, number][] = districtCounts.map((d) => [
+    d.lat,
+    d.lng,
+    d.count,
+  ]);
 
   return (
     <Layout>
       <div className="container py-8 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Crime Heatmap</h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground">
               Geographic visualization of case density across districts
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Time Period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="quarter">This Quarter</SelectItem>
-                <SelectItem value="year">This Year</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={timeFilter} onValueChange={setTimeFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Time Period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+              <SelectItem value="year">This Year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* LEGEND */}
+        <div className="flex gap-6">
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-yellow-400 rounded" /> Low
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-orange-400 rounded" /> Medium
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-red-700 rounded" /> High
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap items-center gap-6">
-          <span className="text-sm font-medium">Intensity:</span>
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded bg-success" />
-            <span className="text-sm">Low</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded bg-warning" />
-            <span className="text-sm">Medium</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded bg-destructive" />
-            <span className="text-sm">High</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Map Visualization */}
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* REAL MAP */}
           <Card className="lg:col-span-2">
             <CardContent className="p-0">
-              <div className="relative bg-muted/30 h-[500px] overflow-hidden rounded-lg">
-                {/* Placeholder Map */}
-                <svg width="100%" height="100%" viewBox="0 0 600 500">
-                  {/* Delhi outline placeholder */}
-                  <path
-                    d="M100,100 L500,100 L500,400 L100,400 Z"
-                    fill="hsl(var(--muted))"
-                    stroke="hsl(var(--border))"
-                    strokeWidth="2"
+              <div className="h-[500px] rounded-lg overflow-hidden">
+                <MapContainer
+                  center={[28.6139, 77.209]}
+                  zoom={10}
+                  className="h-full w-full brightness-110 contrast-90"
+                >
+                  <TileLayer
+                    
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   />
-                  
-                  {/* Grid lines */}
-                  {[150, 200, 250, 300, 350].map((y) => (
-                    <line
-                      key={`h-${y}`}
-                      x1="100"
-                      y1={y}
-                      x2="500"
-                      y2={y}
-                      stroke="hsl(var(--border))"
-                      strokeWidth="0.5"
-                      strokeDasharray="4"
-                    />
-                  ))}
-                  {[150, 200, 250, 300, 350, 400, 450].map((x) => (
-                    <line
-                      key={`v-${x}`}
-                      x1={x}
-                      y1="100"
-                      x2={x}
-                      y2="400"
-                      stroke="hsl(var(--border))"
-                      strokeWidth="0.5"
-                      strokeDasharray="4"
-                    />
-                  ))}
 
-                  {/* Heatmap circles */}
-                  {districtCounts.map((cell, index) => {
-                    const x = 150 + (index % 4) * 100;
-                    const y = 150 + Math.floor(index / 4) * 100;
-                    const isSelected = selectedDistrict === cell.district;
-                    return (
-                      <g
-                        key={cell.district}
-                        onClick={() => setSelectedDistrict(cell.district)}
-                        className="cursor-pointer"
-                      >
-                        <circle
-                          cx={x}
-                          cy={y}
-                          r={20 + cell.count * 10}
-                          className={getHeatColor(cell.count)}
-                          opacity={isSelected ? 0.9 : 0.6}
-                          stroke={isSelected ? 'hsl(var(--foreground))' : 'none'}
-                          strokeWidth={isSelected ? 3 : 0}
-                        />
-                        <text
-                          x={x}
-                          y={y + 50}
-                          textAnchor="middle"
-                          className="fill-foreground"
-                          style={{ fontSize: '10px' }}
-                        >
-                          {cell.district.split(' ')[0]}
-                        </text>
-                        <text
-                          x={x}
-                          y={y + 5}
-                          textAnchor="middle"
-                          className="fill-white font-bold"
-                          style={{ fontSize: '14px' }}
-                        >
-                          {cell.count}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
+                  <HeatLayer points={heatPoints} />
 
-                <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 border border-border">
-                  <p className="text-xs text-muted-foreground">Click on regions to see details</p>
-                </div>
+                  {districtCounts.map((d) => (
+                    <Marker
+                      key={d.district}
+                      position={[d.lat, d.lng]}
+                      eventHandlers={{
+                        click: () => setSelectedDistrict(d.district),
+                      }}
+                    >
+                      <Popup>
+                        <b>{d.district}</b>
+                        <br />
+                        Total Cases: {d.count}
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
               </div>
             </CardContent>
           </Card>
 
-          {/* District Details Panel */}
-          <div className="space-y-4">
+          {/* RIGHT PANEL */}
+          <div className="space-y-4 lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Map className="h-5 w-5" />
-                  District Details
-                </CardTitle>
+                <CardTitle>District Details</CardTitle>
               </CardHeader>
               <CardContent>
                 {selectedDistrictData ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Selected District</p>
-                      <p className="font-semibold text-lg">{selectedDistrictData.district}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Cases</p>
-                      <p className="text-3xl font-bold text-primary">
-                        {selectedDistrictData.count}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Intensity Level</p>
-                      <Badge
-                        variant="outline"
-                        className={
-                          selectedDistrictData.count / maxCount > 0.7
-                            ? 'bg-destructive/10 text-destructive border-destructive/20'
-                            : selectedDistrictData.count / maxCount > 0.4
-                            ? 'bg-warning/10 text-warning border-warning/20'
-                            : 'bg-success/10 text-success border-success/20'
-                        }
-                      >
-                        {selectedDistrictData.count / maxCount > 0.7
-                          ? 'High'
-                          : selectedDistrictData.count / maxCount > 0.4
-                          ? 'Medium'
-                          : 'Low'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Coordinates</p>
-                      <p className="font-mono text-sm">
-                        {selectedDistrictData.lat.toFixed(4)}, {selectedDistrictData.lng.toFixed(4)}
-                      </p>
-                    </div>
-                  </div>
+                  <>
+                    <p className="font-bold">{selectedDistrictData.district}</p>
+                    <p className="text-3xl font-bold">
+                      {selectedDistrictData.count}
+                    </p>
+                    <Badge>
+                      {selectedDistrictData.count / maxCount > 0.7
+                        ? 'High'
+                        : selectedDistrictData.count / maxCount > 0.4
+                        ? 'Medium'
+                        : 'Low'}
+                    </Badge>
+                  </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Select a district from the map to view details
-                  </p>
+                  <p>Select a district</p>
                 )}
               </CardContent>
             </Card>
 
-            {/* Top Districts */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <TrendingUp className="h-5 w-5" />
-                  Top Districts
-                </CardTitle>
+                <CardTitle>Top Districts</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {districtCounts
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 5)
-                    .map((district, index) => (
-                      <div
-                        key={district.district}
-                        className="flex items-center justify-between cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
-                        onClick={() => setSelectedDistrict(district.district)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium text-muted-foreground w-5">
-                            #{index + 1}
-                          </span>
-                          <span className="text-sm">{district.district}</span>
-                        </div>
-                        <Badge variant="secondary">{district.count}</Badge>
-                      </div>
-                    ))}
-                </div>
+              <CardContent className="space-y-2">
+                {districtCounts
+                  .sort((a, b) => b.count - a.count)
+                  .slice(0, 5)
+                  .map((d, i) => (
+                    <div
+                      key={d.district}
+                      className="flex justify-between p-2 hover:bg-muted rounded cursor-pointer"
+                      onClick={() => setSelectedDistrict(d.district)}
+                    >
+                      <span>#{i + 1} {d.district}</span>
+                      <Badge variant="secondary">{d.count}</Badge>
+                    </div>
+                  ))}
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
@@ -332,7 +289,7 @@ const Heatmap: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        </div> */}
+        </div>
       </div>
     </Layout>
   );

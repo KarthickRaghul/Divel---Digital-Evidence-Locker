@@ -4,6 +4,7 @@ import { Footer } from './Footer';
 import Particles from '../ui/Particles';
 import '../ui/Particles.css';
 
+
 interface LayoutProps {
   children: React.ReactNode;
 }
