@@ -1,0 +1,11 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+boto3
+pydantic-settings
+web3
+openai
+httpx
+pytest
