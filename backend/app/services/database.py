@@ -48,12 +48,31 @@ class DatabaseService:
             self.mock_evidence[evidence_data['id']] = evidence_data
         return evidence_data
 
-    def get_evidence_metadata(self, evidence_id: str):
+    def get_evidence_metadata(self, case_id: str, evidence_id: str):
          if self.dynamodb:
-            response = self.evidence_table.get_item(Key={'id': evidence_id})
-            return response.get('Item')
+            try:
+                response = self.evidence_table.get_item(Key={'case_id': case_id, 'evidence_id': evidence_id})
+                return response.get('Item')
+            except Exception as e:
+                print(f"Error fetching evidence: {e}")
+                return None
          else:
              return self.mock_evidence.get(evidence_id)
+
+    def list_case_evidence(self, case_id: str):
+        if self.dynamodb:
+            try:
+                from boto3.dynamodb.conditions import Key
+                response = self.evidence_table.query(
+                    KeyConditionExpression=Key('case_id').eq(case_id)
+                )
+                return response.get('Items', [])
+            except Exception as e:
+                print(f"Error querying evidence: {e}")
+                return []
+        else:
+            # Filter mock evidence by case_id (assuming mock structure has case_id)
+            return [e for e in self.mock_evidence.values() if e.get('case_id') == case_id]
 
 
 db = DatabaseService()

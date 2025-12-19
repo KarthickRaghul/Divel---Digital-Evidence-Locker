@@ -19,7 +19,7 @@ from datetime import datetime
 @router.post("/")
 def create_case(case_in: CaseCreate):
     case_data = case_in.dict()
-    case_data["id"] = str(uuid.uuid4())
+    case_data["id"] = str(uuid.uuid4()) # This works as the PK for forensichain-cases
     case_data["caseNumber"] = f"CR-{uuid.uuid4().hex[:6].upper()}" # Generate simple case number
     case_data["status"] = "Under Investigation" # Default status
     case_data["createdAt"] = str(datetime.now())

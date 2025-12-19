@@ -90,4 +90,4 @@ coverage/
 .DS_Store
 Thumbs.db
 
-/react-bits-mcp-server
+react-bits-mcp-server/

@@ -57,7 +57,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 async def get_current_polaris_user(current_user: User = Depends(get_current_user)):
     if current_user.role != "Polaris":
-        raise HTTPException(status_code=403, detail="Not authorized (Polaris role required)")
+        raise HTTPException(status_code=403, detail="Not authorized (Police role required)")
     return current_user
 
 async def get_current_forensics_user(current_user: User = Depends(get_current_user)):

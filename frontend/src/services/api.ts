@@ -22,9 +22,7 @@ export const auth = {
     const formData = new FormData();
     formData.append('username', username);
     formData.append('password', password);
-    const response = await api.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/auth/login', formData);
     return response.data;
   },
 };
@@ -34,9 +32,7 @@ export const evidence = {
     const formData = new FormData();
     formData.append('case_id', caseId);
     formData.append('file', file);
-    const response = await api.post('/evidence/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/evidence/upload', formData);
     return response.data;
   },
   verify: async (evidenceId: string) => {

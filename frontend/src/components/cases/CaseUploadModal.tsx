@@ -232,7 +232,7 @@ export const CaseUploadModal: React.FC<CaseUploadModalProps> = ({
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: 'Could not upload case or evidence. Check console.',
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
