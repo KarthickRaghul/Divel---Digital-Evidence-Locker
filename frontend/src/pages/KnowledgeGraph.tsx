@@ -263,7 +263,7 @@ const KnowledgeGraph: React.FC = () => {
           </Card>
         </div>
 
-        {/* Stats */}
+        {/* Stats
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -303,7 +303,7 @@ const KnowledgeGraph: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
     </Layout>
   );
