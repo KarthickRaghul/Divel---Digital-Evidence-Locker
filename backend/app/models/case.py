@@ -17,14 +17,21 @@ class CaseCreate(BaseModel):
     lawSections: List[str]
     dateOfOffence: str
     dateOfReport: str
+
     sceneOfCrime: str
     latitude: str
     longitude: str
     contrabandType: Optional[str] = None
     contrabandQuantity: Optional[str] = None
     vehicleDetails: Optional[str] = None
+ 
     accused: List[Accused]
+
+
     customFields: List[Any] = []
     publicAlertEnabled: bool = False
     publicAlertMessage: Optional[str] = None
     publicAlertMobile: Optional[str] = None
+
+
+    
