@@ -30,58 +30,48 @@ class AIService:
             print(f"Docling conversion error: {e}")
             return f"Error parsing document: {str(e)}"
 
-    def _run_detective_agent(self, text_content: str) -> str:
-        """Detective Agent: Generates a professional police case summary."""
+    def _process_multimodal(self, file_path: str, mime_type: str) -> dict:
+        """Handles Video/Audio/Images directly via Gemini's File API."""
         try:
             if not self.client:
-                return "Gemini Client not initialized."
+                return {"summary": "Gemini Client not initialized.", "graph": {"nodes": [], "links": []}}
 
-            prompt = f"""
-            You are a senior forensic detective. 
-            Read the provided evidence text and write a professional, concise case summary. 
-            Focus on facts, dates, and key individuals. 
-            Do not use markdown formatting, just plain text.
+            # 1. Upload file to Gemini
+            print(f"Uploading {file_path} to Gemini...")
+            uploaded_file = self.client.files.upload(path=file_path)
             
-            Evidence:
-            {text_content[:30000]} 
-            """
-            
-            response = self.client.models.generate_content(
+            # 2. Generate Summary (Detective Agent)
+            summary_prompt = "You are a senior forensic detective. Analyze this evidence (video/audio/image) and write a professional, concise case summary. Focus on facts, events, and key individuals."
+            summary_response = self.client.models.generate_content(
                 model="gemini-1.5-flash",
-                contents=prompt
+                contents=[uploaded_file, summary_prompt]
             )
-            return response.text
-        except Exception as e:
-            return f"Error generating summary: {str(e)}"
-
-    def _run_analyst_agent(self, text_content: str) -> dict:
-        """Analyst Agent: Extracts entities and relationships for Knowledge Graph."""
-        try:
-            if not self.client:
-                return {"nodes": [], "links": []}
-
-            prompt = f"""
-            You are a Crime Analyst. Extract entities and relationships from the text for a Knowledge Graph.
+            
+            # 3. Extract Knowledge Graph (Analyst Agent)
+            graph_prompt = """
+            Extract entities and relationships from this evidence for a Knowledge Graph.
             Return ONLY a JSON object with this exact schema:
-            {{
-                "nodes": [{{"id": "Name", "group": "Person|Location|Incident|Evidence"}}],
-                "links": [{{"source": "Name", "target": "Name", "value": "relationship description"}}]
-            }}
-            Ensure 'source' and 'target' IDs exist in 'nodes'.
-            
-            Evidence:
-            {text_content[:30000]}
+            {
+                "nodes": [{"id": "Name", "group": "Person|Location|Incident|Evidence"}],
+                "links": [{"source": "Name", "target": "Name", "value": "relationship description"}]
+            }
             """
-            
-            response = self.client.models.generate_content(
+            graph_response = self.client.models.generate_content(
                 model="gemini-1.5-flash",
-                contents=prompt,
+                contents=[uploaded_file, graph_prompt],
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
-            return json.loads(response.text)
+            
+            return {
+                "summary": summary_response.text,
+                "graph": json.loads(graph_response.text)
+            }
         except Exception as e:
-            print(f"Analyst Agent error: {e}")
-            return {"nodes": [], "links": []}
+            print(f"Multimodal processing error: {e}")
+            return {
+                "summary": f"Error processing multimodal evidence: {str(e)}",
+                "graph": {"nodes": [], "links": []}
+            }
 
     def generate_summary(self, file_path: str) -> dict:
         if not self.api_key:
@@ -90,16 +80,32 @@ class AIService:
                 "graph": {"nodes": [], "links": []}
             }
         
-        # 1. Parse Document via Docling
-        markdown_content = self._convert_file_to_markdown(file_path)
-        
-        # 2. Run Agents
-        summary = self._run_detective_agent(markdown_content)
-        graph_data = self._run_analyst_agent(markdown_content)
-        
-        return {
-            "summary": summary,
-            "graph": graph_data
-        }
+        # Determine if we should use Docling or Multimodal
+        ext = file_path.split('.')[-1].lower()
+        doc_exts = ['pdf', 'docx', 'pptx', 'xlsx', 'md', 'txt', 'html']
+        media_exts = [
+            'mp4', 'mpeg', 'mov', 'avi', 'flv', 'mpg', 'webm', 'wmv', '3gp',  # Video
+            'mp3', 'wav', 'aac', 'm4a', 'ogg', 'flac',                       # Audio
+            'jpg', 'png', 'jpeg', 'webp', 'heic', 'heif'                      # Image
+        ]
+
+        if ext in doc_exts:
+            # 1. Parse Document via Docling
+            markdown_content = self._convert_file_to_markdown(file_path)
+            # 2. Run Agents on text
+            summary = self._run_detective_agent(markdown_content)
+            graph_data = self._run_analyst_agent(markdown_content)
+            return {"summary": summary, "graph": graph_data}
+        elif ext in media_exts:
+            # Determine mime type roughly
+            mime_type = "application/octet-stream"
+            if ext in ['mp4', 'mov', 'avi']: mime_type = "video/mp4"
+            elif ext in ['mp3', 'wav', 'aac']: mime_type = "audio/mpeg"
+            elif ext in ['jpg', 'png', 'jpeg', 'webp']: mime_type = "image/jpeg"
+            
+            return self._process_multimodal(file_path, mime_type)
+        else:
+            # Fallback to multimodal for unknown types
+            return self._process_multimodal(file_path, "application/octet-stream")
 
 ai_service = AIService()

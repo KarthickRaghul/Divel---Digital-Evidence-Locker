@@ -10,9 +10,16 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  let token = localStorage.getItem('token');
+  console.log('DEBUG: Interceptor running for', config.url);
+  
   if (token) {
+    // Remove quotes if they were accidentally stored
+    token = token.replace(/^"(.*)"$/, '$1');
+    console.log('DEBUG: Token found:', token ? 'Yes (starts with ' + token.substring(0, 10) + '...)' : 'No');
+    
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('DEBUG: Authorization header set:', config.headers.Authorization);
   }
   return config;
 });
@@ -34,7 +41,7 @@ export const evidence = {
     formData.append('file', file);
     const response = await api.post('/evidence/upload', formData, {
       headers: {
-        'Content-Type': undefined, // Let browser set multipart/form-data with boundary
+        'Content-Type': undefined,
       } as any,
     });
     return response.data;

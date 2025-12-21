@@ -27,7 +27,9 @@ const Login: React.FC = () => {
                 'Judge': 'judge'
             };
 
-            setRole(roleMap[data.role]);
+            const userRole = roleMap[data.role];
+            localStorage.setItem('role', userRole);
+            setRole(userRole);
 
             toast({
                 title: 'Login Successful',

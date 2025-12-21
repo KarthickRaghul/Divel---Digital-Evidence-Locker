@@ -10,7 +10,6 @@ import KnowledgeGraph from "./pages/KnowledgeGraph";
 import Heatmap from "./pages/Heatmap";
 import Chatbot from "./pages/Chatbot";
 import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +21,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/case/:id" element={<CaseDetail />} />
             <Route path="/knowledge-graph" element={<KnowledgeGraph />} />
