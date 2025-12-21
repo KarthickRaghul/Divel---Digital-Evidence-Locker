@@ -52,14 +52,31 @@ async def upload_evidence(
     db.store_evidence_metadata(metadata)
     
     # 6. Trigger AI (Async in real world, sync here for MVP)
-    # We might extract text if it's a doc, here we just pass filename as dummy content
-    ai_summary = ai_service.generate_summary(f"Evidence file: {file.filename}")
+    # Save temp file for Docling to read (Docling needs a path or url)
+    import os
+    temp_file_path = f"/tmp/{file.filename}"
+    with open(temp_file_path, "wb") as f:
+        f.write(content) # Write original content
+        
+    ai_result = ai_service.generate_summary(temp_file_path)
+    
+    # Clean up temp file
+    if os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
+    
+    # 7. Update Metadata with AI results
+    metadata["ai_summary"] = ai_result.get("summary", "")
+    metadata["knowledge_graph"] = ai_result.get("graph", {})
+    
+    # Re-store (overwrite) with AI data
+    db.store_evidence_metadata(metadata)
     
     return {
         "evidence_id": evidence_id,
         "hash": file_hash,
         "tx_hash": tx_hash,
-        "ai_summary": ai_summary
+        "ai_summary": ai_result.get("summary"),
+        "knowledge_graph": ai_result.get("graph")
     }
 
 @router.get("/{evidence_id}/verify")

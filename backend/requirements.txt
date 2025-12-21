@@ -9,3 +9,5 @@ web3
 openai
 httpx
 pytest
+docling
+

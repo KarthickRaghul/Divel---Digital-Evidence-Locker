@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useRole } from '@/contexts/RoleContext';
@@ -21,10 +21,12 @@ import {
   Clock,
   ShieldCheck,
   Loader2,
+  Network
 } from 'lucide-react';
 import { evidence as evidenceApi } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import KnowledgeGraph from '@/components/KnowledgeGraph';
 
 const statusColors: Record<string, string> = {
   'Under Investigation': 'bg-warning/10 text-warning border-warning/20',
@@ -98,6 +100,62 @@ const CaseDetail: React.FC = () => {
     }
   };
 
+  // Derive Graph Data from all evidence
+  const graphData = useMemo(() => {
+    if (!caseData || !caseData.evidence) return { nodes: [], links: [] };
+
+    const nodesMap = new Map();
+    const links: any[] = [];
+
+    caseData.evidence.forEach((ev: any) => {
+      if (ev.metadata?.knowledge_graph) {
+        const kg = ev.metadata.knowledge_graph;
+
+        // Merge Nodes
+        kg.nodes?.forEach((node: any) => {
+          if (!nodesMap.has(node.id)) {
+            nodesMap.set(node.id, { ...node });
+          }
+        });
+
+        // Merge Links
+        kg.links?.forEach((link: any) => {
+          links.push({ ...link });
+        });
+      }
+    });
+
+    // Add Central Case Node
+    const caseNodeId = `Case ${caseData.caseNumber}`;
+    if (!nodesMap.has(caseNodeId)) {
+      nodesMap.set(caseNodeId, { id: caseNodeId, group: "Case", val: 20 });
+    }
+
+    // Link Evidence to Case
+    // caseData.evidence.forEach((ev: any) => {
+    //    // Optional: add evidence files as nodes
+    // });
+
+    return {
+      nodes: Array.from(nodesMap.values()),
+      links: links
+    };
+  }, [caseData]);
+
+  // Derive Aggregate Summary
+  const displaySummary = useMemo(() => {
+    if (!caseData) return "";
+    if (caseData.aiSummary) return caseData.aiSummary;
+
+    // Fallback: Aggregate summaries from recent evidence
+    const summaries = caseData.evidence
+      .filter((ev: any) => ev.metadata?.ai_summary)
+      .map((ev: any) => `[Evidence: ${ev.name}]: ${ev.metadata.ai_summary}`)
+      .join("\n\n");
+
+    return summaries || "";
+  }, [caseData]);
+
   if (loading) {
     return <Layout><div className="container py-8 text-center">Loading case details...</div></Layout>;
   }
@@ -148,7 +206,7 @@ const CaseDetail: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {caseData.lawSections.map((section) => (
+            {caseData.lawSections.map((section: string) => (
               <Badge key={section} variant="secondary">
                 {section}
               </Badge>
@@ -156,19 +214,38 @@ const CaseDetail: React.FC = () => {
           </div>
         </div>
 
-        {caseData.aiSummary && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Brain className="h-5 w-5 text-primary" />
-                AI-Generated Case Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground leading-relaxed">{caseData.aiSummary}</p>
-            </CardContent>
-          </Card>
-        )}
+        {/* AI Analysis Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Left: Summary */}
+          <div className="lg:col-span-1">
+            {displaySummary && (
+              <Card className="border-primary/20 bg-primary/5 h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Brain className="h-6 w-6 text-primary animate-pulse" />
+                    AI Case Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-[400px] overflow-y-auto pr-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {displaySummary}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {!displaySummary && (
+              <Card className="border-dashed h-full flex items-center justify-center p-6 text-muted-foreground">
+                No AI Analysis Available. Upload evidence to generate insights.
+              </Card>
+            )}
+          </div>
+
+          {/* Right: Knowledge Graph */}
+          <div className="lg:col-span-2">
+            <KnowledgeGraph data={graphData} />
+          </div>
+        </div>
 
         <Tabs defaultValue="details" className="space-y-4">
           <TabsList>
@@ -300,7 +377,7 @@ const CaseDetail: React.FC = () => {
 
           <TabsContent value="accused" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {caseData.accused.map((accused) => (
+              {caseData.accused.map((accused: any) => (
                 <Card key={accused.id}>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
@@ -347,7 +424,7 @@ const CaseDetail: React.FC = () => {
 
           <TabsContent value="evidence" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {caseData.evidence.map((evidence) => {
+              {caseData.evidence.map((evidence: any) => {
                 const Icon = evidenceIcons[evidence.type] || File;
                 return (
                   <Card key={evidence.id} className="hover:shadow-md transition-shadow cursor-pointer">
@@ -432,7 +509,7 @@ const CaseDetail: React.FC = () => {
                   <div className="mt-6 pt-4 border-t border-border">
                     <h4 className="font-medium mb-4">Evidence Metadata</h4>
                     <div className="space-y-3">
-                      {caseData.evidence.map((ev) => (
+                      {caseData.evidence.map((ev: any) => (
                         <div key={ev.id} className="p-3 bg-muted/50 rounded-lg">
                           <p className="font-medium text-sm">{ev.name}</p>
                           {ev.metadata && (
