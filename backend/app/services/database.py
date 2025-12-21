@@ -45,7 +45,7 @@ class DatabaseService:
         if self.dynamodb:
             self.evidence_table.put_item(Item=evidence_data)
         else:
-            self.mock_evidence[evidence_data['id']] = evidence_data
+            self.mock_evidence[evidence_data['evidence_id']] = evidence_data
         return evidence_data
 
     def get_evidence_metadata(self, case_id: str, evidence_id: str):

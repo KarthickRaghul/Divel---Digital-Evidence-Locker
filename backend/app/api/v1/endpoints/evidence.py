@@ -22,7 +22,7 @@ def get_case_evidence(case_id: str):
 async def upload_evidence(
     file: UploadFile = File(...),
     case_id: str = Form(...),
-    current_user: auth.User = Depends(auth.get_current_polaris_user)
+    current_user: auth.User = Depends(auth.get_mock_polaris_user)
 ):
     # 1. Read file content
     content = await file.read()
@@ -52,7 +52,7 @@ async def upload_evidence(
     
     # 5. Store Metadata
     metadata = {
-        "id": evidence_id,
+        "evidence_id": evidence_id,
         "case_id": case_id,
         "filename": file.filename,
         "content_type": file_type,
@@ -65,9 +65,10 @@ async def upload_evidence(
     db.store_evidence_metadata(metadata)
     
     # 6. Trigger AI (Async in real world, sync here for MVP)
-    # Save temp file for Docling to read (Docling needs a path or url)
+    # Save temp file for Docling/Gemini to read
     import os
-    temp_file_path = f"/tmp/{file.filename}"
+    temp_filename = f"{evidence_id}_{file.filename}"
+    temp_file_path = f"/tmp/{temp_filename}"
     with open(temp_file_path, "wb") as f:
         f.write(content) # Write original content
         
@@ -91,6 +92,7 @@ async def upload_evidence(
         "ai_summary": ai_result.get("summary"),
         "knowledge_graph": ai_result.get("graph")
     }
+    
 
 @router.get("/{evidence_id}/verify")
 async def verify_evidence(

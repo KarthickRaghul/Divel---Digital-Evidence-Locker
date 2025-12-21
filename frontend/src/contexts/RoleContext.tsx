@@ -13,7 +13,10 @@ interface RoleContextType {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<UserRole>('police');
+  const [role, setRole] = useState<UserRole>(() => {
+    const savedRole = localStorage.getItem('role');
+    return (savedRole as UserRole) || 'police';
+  });
 
   const canUpload = role === 'police';
   const canViewMetadata = role === 'forensics';

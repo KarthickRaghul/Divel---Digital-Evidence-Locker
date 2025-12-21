@@ -7,7 +7,7 @@ from jose import jwt
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 class Token(BaseModel):
     access_token: str
@@ -69,3 +69,7 @@ async def get_current_judge_user(current_user: User = Depends(get_current_user))
     if current_user.role != "Judge":
         raise HTTPException(status_code=403, detail="Not authorized (Judge role required)")
     return current_user
+
+async def get_mock_polaris_user():
+    """Returns a default Polaris user to bypass auth."""
+    return User(username="polaris", role="Polaris")
