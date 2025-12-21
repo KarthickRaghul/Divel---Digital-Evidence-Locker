@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, GitBranch, Map, MessageSquare, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ThemeToggle from '@/components/ThemeToggle';
+// GooeyNav removed per user request
 import { useRole, UserRole } from '@/contexts/RoleContext';
 import {
   Select,
@@ -33,6 +35,7 @@ const roleColors: Record<UserRole, string> = {
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const { role, setRole } = useRole();
+  const activeIdx = Math.max(0, navItems.findIndex(i => i.path === location.pathname));
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -48,30 +51,23 @@ export const Navbar: React.FC = () => {
         </Link>
 
         {/* Centered Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
+        <div className="hidden md:flex items-center">
+          <nav className="flex items-center gap-6">
+            {navItems.map((n, idx) => (
               <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                )}
+                key={n.path}
+                to={n.path}
+                className={cn('text-sm font-medium transition-colors', idx === activeIdx ? 'text-primary' : 'text-muted-foreground')}
               >
-                <Icon className="h-4 w-4" />
-                {item.label}
+                {n.label}
               </Link>
-            );
-          })}
-        </nav>
+            ))}
+          </nav>
+        </div>
 
         {/* Role Switcher */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <span className="text-xs text-muted-foreground hidden sm:block">Role:</span>
           <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
             <SelectTrigger className={cn('w-[130px] h-9', roleColors[role])}>
