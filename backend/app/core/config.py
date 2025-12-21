@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     BLOCKCHAIN_PRIVATE_KEY: Optional[str] = None
 
     # AI
-    OPENAI_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None
 
     # Security
     SECRET_KEY: str = "supersecretkeydefaultsfortestingonly"
