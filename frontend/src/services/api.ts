@@ -32,7 +32,11 @@ export const evidence = {
     const formData = new FormData();
     formData.append('case_id', caseId);
     formData.append('file', file);
-    const response = await api.post('/evidence/upload', formData);
+    const response = await api.post('/evidence/upload', formData, {
+      headers: {
+        'Content-Type': undefined, // Let browser set multipart/form-data with boundary
+      } as any,
+    });
     return response.data;
   },
   verify: async (evidenceId: string) => {
