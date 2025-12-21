@@ -6,7 +6,7 @@ passlib[bcrypt]
 boto3
 pydantic-settings
 web3
-openai
+google-genai
 httpx
 pytest
 docling
