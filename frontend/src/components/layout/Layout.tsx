@@ -3,6 +3,7 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import Particles from '../ui/Particles';
 import '../ui/Particles.css';
+import ClickSpark from '../ClickSpark';
 
 
 interface LayoutProps {
@@ -27,7 +28,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
         <main className="flex-1">
-          {children}
+          <ClickSpark>
+            {children}
+          </ClickSpark>
         </main>
         <Footer />
       </div>

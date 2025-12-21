@@ -21,63 +21,63 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseData }) => {
   return (
     <Link to={`/case/${caseData.id}`}>
       <Card className="group h-full transition-all duration-200 hover:shadow-elevated hover:border-primary/20 cursor-pointer">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1">
-              <h3 className="font-display font-semibold text-lg group-hover:text-primary transition-colors">
-                {caseData.caseNumber}
-              </h3>
-              <p className="text-sm text-muted-foreground">{caseData.district}</p>
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1">
+                <h3 className="font-display font-semibold text-lg group-hover:text-primary transition-colors">
+                  {caseData.caseNumber}
+                </h3>
+                <p className="text-sm text-muted-foreground">{caseData.district}</p>
+              </div>
+              <Badge variant="outline" className={cn('shrink-0', statusColors[caseData.status])}>
+                {caseData.status}
+              </Badge>
             </div>
-            <Badge variant="outline" className={cn('shrink-0', statusColors[caseData.status])}>
-              {caseData.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-1.5">
-            {caseData.lawSections.slice(0, 3).map((section) => (
-              <Badge key={section} variant="secondary" className="text-xs">
-                {section}
-              </Badge>
-            ))}
-            {caseData.lawSections.length > 3 && (
-              <Badge variant="secondary" className="text-xs">
-                +{caseData.lawSections.length - 3}
-              </Badge>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-1.5">
+              {caseData.lawSections.slice(0, 3).map((section) => (
+                <Badge key={section} variant="secondary" className="text-xs">
+                  {section}
+                </Badge>
+              ))}
+              {caseData.lawSections.length > 3 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{caseData.lawSections.length - 3}
+                </Badge>
+              )}
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="truncate">{caseData.sceneOfCrime}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-4 w-4 shrink-0" />
+                <span>Offence: {new Date(caseData.dateOfOffence).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Users className="h-4 w-4 shrink-0" />
+                <span>{caseData.accused.length} Accused</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <FileText className="h-4 w-4 shrink-0" />
+                <span>{caseData.evidence.length} Evidence Items</span>
+              </div>
+            </div>
+
+            {caseData.accused.length > 0 && (
+              <div className="pt-3 border-t border-border">
+                <p className="text-xs text-muted-foreground mb-2">Primary Accused:</p>
+                <p className="text-sm font-medium">{caseData.accused[0].name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {caseData.accused[0].status}
+                </p>
+              </div>
             )}
-          </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0" />
-              <span className="truncate">{caseData.sceneOfCrime}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4 shrink-0" />
-              <span>Offence: {new Date(caseData.dateOfOffence).toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="h-4 w-4 shrink-0" />
-              <span>{caseData.accused.length} Accused</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <FileText className="h-4 w-4 shrink-0" />
-              <span>{caseData.evidence.length} Evidence Items</span>
-            </div>
-          </div>
-
-          {caseData.accused.length > 0 && (
-            <div className="pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-2">Primary Accused:</p>
-              <p className="text-sm font-medium">{caseData.accused[0].name}</p>
-              <p className="text-xs text-muted-foreground">
-                {caseData.accused[0].status}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
     </Link>
   );
 };
