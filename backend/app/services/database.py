@@ -74,5 +74,56 @@ class DatabaseService:
             # Filter mock evidence by case_id (assuming mock structure has case_id)
             return [e for e in self.mock_evidence.values() if e.get('case_id') == case_id]
 
+    def add_evidence_to_case(self, case_id: str, evidence_data: dict):
+        if self.dynamodb:
+            try:
+                # Append to list if supported, or just ensure it's queryable via secondary index
+                # For this specific data model where Case has 'evidence' list:
+                from botocore.exceptions import ClientError
+                
+                # Check if evidence list exists, if not create, then append
+                # This is a bit complex in DynamoDB efficiently without risk of overwriting
+                # simpler approach: get, append, put
+                case = self.cases_table.get_item(Key={'id': case_id}).get('Item')
+                if case:
+                    if 'evidence' not in case:
+                        case['evidence'] = []
+                    # Avoid duplicates
+                    if not any(e['evidence_id'] == evidence_data['evidence_id'] for e in case['evidence']):
+                        case['evidence'].append(evidence_data)
+                        self.cases_table.put_item(Item=case)
+            except Exception as e:
+                print(f"Error adding evidence to case: {e}")
+        else:
+            case = self.mock_cases.get(case_id)
+            if case:
+                if 'evidence' not in case:
+                    case['evidence'] = []
+                case['evidence'].append(evidence_data)
+
+    def update_evidence_in_case(self, case_id: str, evidence_id: str, updates: dict):
+        # Update inside the nested list in Case object
+        if self.dynamodb:
+            try:
+                case = self.cases_table.get_item(Key={'id': case_id}).get('Item')
+                if case and 'evidence' in case:
+                    for i, ev in enumerate(case['evidence']):
+                        if ev['evidence_id'] == evidence_id:
+                            # Update fields
+                            case['evidence'][i].update(updates)
+                            # Also update the standalone evidence table entry if needed
+                            # self.store_evidence_metadata(case['evidence'][i]) 
+                            break
+                    self.cases_table.put_item(Item=case)
+            except Exception as e:
+                print(f"Error updating evidence in case: {e}")
+        else:
+            case = self.mock_cases.get(case_id)
+            if case and 'evidence' in case:
+                 for i, ev in enumerate(case['evidence']):
+                        if ev['evidence_id'] == evidence_id:
+                            case['evidence'][i].update(updates)
+                            break
+
 
 db = DatabaseService()

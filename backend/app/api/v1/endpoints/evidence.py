@@ -64,6 +64,9 @@ async def upload_evidence(
     }
     db.store_evidence_metadata(metadata)
     
+    # 5.5 Link to Case
+    db.add_evidence_to_case(case_id, metadata)
+    
     # 6. Trigger AI (Async in real world, sync here for MVP)
     # Save temp file for Docling/Gemini to read
     import os
@@ -83,7 +86,11 @@ async def upload_evidence(
     metadata["knowledge_graph"] = ai_result.get("graph", {})
     
     # Re-store (overwrite) with AI data
+    # Re-store (overwrite) with AI data
     db.store_evidence_metadata(metadata)
+    
+    # 7.5 Update Case with AI Data
+    db.update_evidence_in_case(case_id, evidence_id, metadata)
     
     return {
         "evidence_id": evidence_id,
