@@ -27,6 +27,7 @@ import { evidence as evidenceApi } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import KnowledgeGraph from '@/components/KnowledgeGraph';
+import { BlockchainVerificationDialog } from '@/components/BlockchainVerificationDialog';
 
 const statusColors: Record<string, string> = {
   'Under Investigation': 'bg-warning/10 text-warning border-warning/20',
@@ -47,6 +48,7 @@ const evidenceIcons: Record<string, React.ElementType> = {
   document: FileText,
   video: Video,
   audio: Music,
+  'application/pdf': FileText,
 };
 
 import { cases } from '@/services/api';
@@ -59,6 +61,11 @@ const CaseDetail: React.FC = () => {
   const [verifyingId, setVerifyingId] = React.useState<string | null>(null);
   const [caseData, setCaseData] = React.useState<any | null>(null);
   const [loading, setLoading] = React.useState(true);
+
+  // Verification Dialog State
+  const [verificationResult, setVerificationResult] = React.useState<any | null>(null);
+  const [isVerificationOpen, setIsVerificationOpen] = React.useState(false);
+  const [isVerifying, setIsVerifying] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
@@ -83,20 +90,27 @@ const CaseDetail: React.FC = () => {
   const handleVerify = async (evidenceId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
     setVerifyingId(evidenceId);
+    setIsVerificationOpen(true); // Open Modal immediately
+    setIsVerifying(true); // Show spinner in modal
+    setVerificationResult(null); // Reset previous result
+
     try {
-      await evidenceApi.verify(evidenceId);
-      toast({
-        title: "Integrity Verified",
-        description: "Blockchain hash matches current file hash.",
-      });
+      const result = await evidenceApi.verify(evidenceId);
+      setVerificationResult(result);
+
+      // Optional: keep using toast for quick feedback as well? 
+      // Maybe not if the modal is opening.
     } catch (error) {
+      console.error("Verification failed", error);
       toast({
         title: "Verification Failed",
-        description: "Hash mismatch or verification error.",
+        description: "Could not complete blockchain verification.",
         variant: "destructive",
       });
+      setIsVerificationOpen(false); // Close if it failed fast
     } finally {
       setVerifyingId(null);
+      setIsVerifying(false);
     }
   };
 
@@ -185,6 +199,14 @@ const CaseDetail: React.FC = () => {
             Back to Dashboard
           </Button>
         </Link>
+
+        {/* Verification Dialog */}
+        <BlockchainVerificationDialog
+          open={isVerificationOpen}
+          onOpenChange={setIsVerificationOpen}
+          result={verificationResult}
+          loading={isVerifying}
+        />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
