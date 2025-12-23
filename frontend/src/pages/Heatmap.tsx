@@ -73,39 +73,76 @@ interface HeatmapCell {
 const Heatmap: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
+  const [casesData, setCasesData] = useState<any[]>([]); // Using any[] for now or import Case type
+  const [loading, setLoading] = useState(true);
 
-  /* ================= DATA LOGIC (UNCHANGED) ================= */
-  const districtCounts: HeatmapCell[] = districts
+  // Fetch real cases
+  useEffect(() => {
+    const fetchCases = async () => {
+      try {
+        const data = await import('@/services/api').then(m => m.cases.list());
+        setCasesData(data);
+      } catch (error) {
+        console.error("Failed to fetch cases:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCases();
+  }, []);
+
+  /* ================= DATA LOGIC ================= */
+  // Get unique districts from actual data + predefined districts to ensure we cover all
+  const availableDistricts = Array.from(new Set([...districts, ...casesData.map((c: any) => c.district)]));
+
+  const districtCounts: HeatmapCell[] = availableDistricts
     .map((district) => {
-      const cases = mockCases.filter((c) => c.district === district);
+      // Filter cases for this district
+      const districtCases = casesData.filter((c: any) => c.district === district);
+
+      // Calculate avg lat/lng
       const avgLat =
-        cases.length > 0
-          ? cases.reduce((s, c) => s + c.latitude, 0) / cases.length
-          : 28.6139;
+        districtCases.length > 0
+          ? districtCases.reduce((s: number, c: any) => s + parseFloat(c.latitude), 0) / districtCases.length
+          : 28.6139; // Default to center if no cases (or maybe handle differently)
+
       const avgLng =
-        cases.length > 0
-          ? cases.reduce((s, c) => s + c.longitude, 0) / cases.length
+        districtCases.length > 0
+          ? districtCases.reduce((s: number, c: any) => s + parseFloat(c.longitude), 0) / districtCases.length
           : 77.209;
 
       return {
         district,
-        count: cases.length,
+        count: districtCases.length,
         lat: avgLat,
         lng: avgLng,
       };
     })
-    .filter((d) => d.count > 0);
+    .filter((d) => d.count > 0); // Only show districts with cases
 
-  const maxCount = Math.max(...districtCounts.map((d) => d.count));
+  const maxCount = Math.max(...districtCounts.map((d) => d.count), 1); // Avoid div by zero
   const selectedDistrictData = districtCounts.find(
     (d) => d.district === selectedDistrict
   );
+
+
+
 
   const heatPoints: [number, number, number][] = districtCounts.map((d) => [
     d.lat,
     d.lng,
     d.count,
   ]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container py-8 flex justify-center items-center h-[500px]">
+          <p>Loading heatmap data...</p>
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout>
@@ -156,7 +193,7 @@ const Heatmap: React.FC = () => {
                   className="h-full w-full brightness-110 contrast-90"
                 >
                   <TileLayer
-                    
+
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   />
 
@@ -199,8 +236,8 @@ const Heatmap: React.FC = () => {
                       {selectedDistrictData.count / maxCount > 0.7
                         ? 'High'
                         : selectedDistrictData.count / maxCount > 0.4
-                        ? 'Medium'
-                        : 'Low'}
+                          ? 'Medium'
+                          : 'Low'}
                     </Badge>
                   </>
                 ) : (
@@ -268,7 +305,7 @@ const Heatmap: React.FC = () => {
                   <Filter className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{mockCases.length}</p>
+                  <p className="text-2xl font-bold">{casesData.length}</p>
                   <p className="text-sm text-muted-foreground">Total Cases</p>
                 </div>
               </div>
@@ -282,7 +319,7 @@ const Heatmap: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {(mockCases.length / districtCounts.length).toFixed(1)}
+                    {(casesData.length / Math.max(districtCounts.length, 1)).toFixed(1)}
                   </p>
                   <p className="text-sm text-muted-foreground">Avg per District</p>
                 </div>
