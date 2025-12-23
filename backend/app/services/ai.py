@@ -73,6 +73,68 @@ class AIService:
                 "graph": {"nodes": [], "links": []}
             }
 
+    def _run_detective_agent(self, context: str) -> str:
+        """
+        Role: Senior Detective
+        Task: Analyze text evidence and produce a summary.
+        """
+        try:
+            if not self.client: return "AI Service Unavailable"
+            
+            prompt = f"""
+            You are a Senior Forensic Detective. 
+            Analyze the following evidence content and provide a professional case summary.
+            
+            Evidence Content:
+            {context[:30000]}  # Limit context window just in case
+            
+            Output Guidelines:
+            - Start with a strict status (Relevant/Irrelevant)
+            - Summarize key facts, timeline, and involved individuals.
+            - maintain a professional, objective tone.
+            """
+            
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            print(f"Detective Agent Error: {e}")
+            return f"Error analyzing document: {str(e)}"
+
+    def _run_analyst_agent(self, context: str) -> dict:
+        """
+        Role: Intelligence Analyst
+        Task: Extract entities and relationships for knowledge graph.
+        """
+        try:
+            if not self.client: return {"nodes": [], "links": []}
+
+            prompt = f"""
+            You are a Criminal Intelligence Analyst.
+            Extract entities and relationships from the text below for a Knowledge Graph.
+            
+            Evidence Content:
+            {context[:30000]}
+            
+            Return ONLY a JSON object with this exact schema:
+            {{
+                "nodes": [{{"id": "Name", "group": "Person|Location|Incident|Evidence"}}],
+                "links": [{{"source": "Name", "target": "Name", "value": "relationship description"}}]
+            }}
+            """
+            
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
+            return json.loads(response.text)
+        except Exception as e:
+            print(f"Analyst Agent Error: {e}")
+            return {"nodes": [], "links": []}
+
     def generate_summary(self, file_path: str) -> dict:
         if not self.api_key:
              return {
