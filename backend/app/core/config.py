@@ -21,6 +21,9 @@ class Settings(BaseSettings):
 
     # AI
     GEMINI_API_KEY: Optional[str] = None
+    AI_PROVIDER: str = "gemini" # Options: gemini, local
+    OLLAMA_BASE_URL: str = "http://localhost:11434/api/generate"
+    OLLAMA_MODEL: str = "llama3"
 
     # Security
     SECRET_KEY: str = "supersecretkeydefaultsfortestingonly"

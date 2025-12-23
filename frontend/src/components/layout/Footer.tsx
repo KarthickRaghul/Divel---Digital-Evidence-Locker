@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
                 <Shield className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-display text-xl font-bold">CaseFlow</span>
+              <span className="font-display text-xl font-bold">Divel</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Advanced criminal justice case management system for law enforcement agencies.
@@ -88,7 +88,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                support@caseflow.gov.in
+                support@Divel.gov.in
               </li>
             </ul>
           </div>
@@ -97,7 +97,7 @@ export const Footer: React.FC = () => {
         {/* Bottom */}
         <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 CaseFlow. All rights reserved. Government of India.
+            © 2024 Divel. All rights reserved. Government of India.
           </p>
           <div className="flex items-center gap-6 text-sm">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">

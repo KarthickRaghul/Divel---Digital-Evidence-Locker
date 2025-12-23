@@ -43,7 +43,7 @@ class AIService:
             # 2. Generate Summary (Detective Agent)
             summary_prompt = "You are a senior forensic detective. Analyze this evidence (video/audio/image) and write a professional, concise case summary. Focus on facts, events, and key individuals."
             summary_response = self.client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=[uploaded_file, summary_prompt]
             )
             
@@ -57,7 +57,7 @@ class AIService:
             }
             """
             graph_response = self.client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=[uploaded_file, graph_prompt],
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
@@ -95,7 +95,7 @@ class AIService:
             """
             
             response = self.client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=prompt
             )
             return response.text
@@ -126,7 +126,7 @@ class AIService:
             """
             
             response = self.client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
