@@ -253,3 +253,37 @@ Periodically update your packages to ensure security.
 - **Backend Logs**: Check the terminal running `uvicorn`.
 - **Frontend Errors**: Open Browser Developer Tools (F12) -> Console.
 - **Blockchain Logs**: Check the `hardhat node` terminal for transaction receipts.
+
+---
+
+## 13. Project Gallery
+
+Below are some screenshots of the DiVeL application in action.
+
+![Dashboard View](assets/images/Screenshot%202025-12-27%20at%2021-30-54%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*Overview of the application dashboard.*
+
+![Case List](assets/images/Screenshot%202025-12-27%20at%2021-31-09%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*List of active digital evidence cases.*
+
+![Case Details](assets/images/Screenshot%202025-12-27%20at%2021-31-51%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*Detailed view of a specific case.*
+
+![Evidence Chain](assets/images/Screenshot%202025-12-27%20at%2021-32-00%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*Blockchain-verified chain of custody.*
+
+![AI Analysis](assets/images/Screenshot%202025-12-27%20at%2021-32-18%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*AI-generated insights and summaries.*
+
+![Knowledge Graph](assets/images/Screenshot%202025-12-27%20at%2021-34-04%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*Interactive knowledge graph of entities.*
+
+![File Upload](assets/images/Screenshot%202025-12-27%20at%2021-34-15%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*Secure evidence upload interface.*
+
+![System Settings](assets/images/Screenshot%202025-12-27%20at%2021-34-33%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*Application configuration and settings.*
+
+![User Profile](assets/images/Screenshot%202025-12-27%20at%2021-35-44%20Divel%20-%20Digital%20Evidence%20Locker.png)
+*User profile and role management.*
+
