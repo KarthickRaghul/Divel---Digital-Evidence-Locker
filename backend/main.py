@@ -5,11 +5,11 @@ from app.api.v1.endpoints import cases, evidence, auth
 
 app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
-# CORS
+# CORS - Allow only specific origins for security
+# Add production domain when deploying
 origins = [
-    "http://localhost:5173", # Vite
-    "http://localhost:3000",
-    "*"
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:3000",  # Alternative frontend port
 ]
 
 app.add_middleware(

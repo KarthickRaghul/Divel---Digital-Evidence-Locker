@@ -26,7 +26,8 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "llama3"
 
     # Security
-    SECRET_KEY: str = "supersecretkeydefaultsfortestingonly"
+    # CRITICAL: Set a strong SECRET_KEY in .env file for production
+    SECRET_KEY: str = "supersecretkeydefaultsfortestingonly"  # CHANGE THIS IN PRODUCTION
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 

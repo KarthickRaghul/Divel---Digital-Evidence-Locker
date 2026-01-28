@@ -3,7 +3,10 @@ from web3 import Web3
 import hashlib
 import json
 import os
+import logging
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 class BlockchainService:
     def __init__(self):
@@ -31,19 +34,20 @@ class BlockchainService:
                         # Determine Chain ID to ensure we are on the right network (Localhost: 1337)
                         # self.w3.eth.chain_id 
                         self.contract = self.w3.eth.contract(address=self.contract_address, abi=abi)
-                        print(f"Blockchain Connected: {self.contract_address}")
+                        logger.info(f"Blockchain Connected: {self.contract_address}")
             except Exception as e:
-                print(f"Failed to load blockchain config: {e}")
+                logger.error(f"Failed to load blockchain config: {e}")
         else:
-            print(f"Blockchain config not found at {config_path}. Run 'npx hardhat run scripts/deploy.js --network localhost' in blockchain/ folder.")
+            logger.warning(f"Blockchain config not found at {config_path}. Run 'npx hardhat run scripts/deploy.js --network localhost' in blockchain/ folder.")
 
         # Fallback to local file-based ledger ONLY if blockchain is not active
         self.ledger_file = "local_blockchain_ledger.json"
         
-        # Test Account for MVP (In prod, use env var or KMS)
-        # Hardhat Account #0
+        # WARNING: Using Hardhat test account #0 for local development ONLY
+        # CRITICAL: Use secure key management (AWS KMS, env vars) in production
+        # This is a well-known public test key - DO NOT use in production
         self.private_key = os.getenv("BLOCKCHAIN_PRIVATE_KEY", "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-        self.account_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        self.account_address = os.getenv("BLOCKCHAIN_ACCOUNT_ADDRESS", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 
     def calculate_hash(self, file_content: bytes) -> str:
         return hashlib.sha256(file_content).hexdigest()
@@ -96,13 +100,13 @@ class BlockchainService:
                 return self.w3.to_hex(tx_hash)
                 
             except Exception as e:
-                print(f"Blockchain Transaction Failed: {e}")
+                logger.error(f"Blockchain Transaction Failed: {e}")
                 # Fallthrough to fallback if chain fails? Or raise error?
                 # For demo reliability, we fall back.
                 pass
         
         # Fallback to local ledger
-        print("Using Local Ledger Fallback")
+        logger.info("Using Local Ledger Fallback")
         entry = {
             "case_id": case_id,
             "evidence_id": evidence_id,
@@ -155,7 +159,7 @@ class BlockchainService:
                     }
                 }
             except Exception as e:
-                print(f"Blockchain Verification Error: {e}")
+                logger.error(f"Blockchain Verification Error: {e}")
                 # Fallback to file
         
         # Fallback

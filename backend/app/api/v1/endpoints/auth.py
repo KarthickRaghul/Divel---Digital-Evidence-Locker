@@ -52,8 +52,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
              raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
         return User(username=username, role=role)
     except Exception as e:
-        print(f"DEBUG AUTH ERROR: {e}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Could not validate credentials: {str(e)}")
+        # Don't expose internal error details in production
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
 async def get_current_polaris_user(current_user: User = Depends(get_current_user)):
     if current_user.role != "Polaris":
