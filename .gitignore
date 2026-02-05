@@ -91,3 +91,8 @@ coverage/
 Thumbs.db
 
 react-bits-mcp-server/
+
+
+##Deepfake Detector
+temp_uploads/
+temp_downloads/

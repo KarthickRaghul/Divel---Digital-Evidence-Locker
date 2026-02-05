@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, GitBranch, Map, MessageSquare, Shield } from 'lucide-react';
+import { Home, GitBranch, Map, MessageSquare, Shield, ScanFace } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ThemeToggle from '@/components/ThemeToggle';
 // GooeyNav removed per user request
@@ -14,10 +14,11 @@ import {
 } from '@/components/ui/select';
 
 const navItems = [
-  { path: '/', label: 'Home', icon: Home },
+  { path: '/dashboard', label: 'Dashboard', icon: Home },
   { path: '/knowledge-graph', label: 'Knowledge Graph', icon: GitBranch },
   { path: '/heatmap', label: 'Heatmap', icon: Map },
   { path: '/chatbot', label: 'Chatbot', icon: MessageSquare },
+  { path: '/', label: 'Deepfake Detector', icon: ScanFace },
 ];
 
 const roleLabels: Record<UserRole, string> = {

@@ -5,7 +5,8 @@ import { CaseFilters, FilterState } from '@/components/cases/CaseFilters';
 import { CaseUploadModal } from '@/components/cases/CaseUploadModal';
 import { useRole } from '@/contexts/RoleContext';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Users, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Plus, FileText, Users, AlertTriangle, CheckCircle, ScanFace } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import { cases } from '@/services/api';
 
@@ -19,6 +20,7 @@ const defaultFilters: FilterState = {
 
 const Dashboard: React.FC = () => {
   const { canUpload } = useRole();
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [caseList, setCaseList] = useState<any[]>([]);
@@ -111,6 +113,10 @@ const Dashboard: React.FC = () => {
           <p className="text-sm text-muted-foreground">
             Showing {filteredCases.length} of {caseList.length} cases
           </p>
+          <Button variant="outline" className="gap-2" onClick={() => navigate('/deepfake-detector')}>
+            <ScanFace className="w-4 h-4" />
+            Launch Deepfake Detector
+          </Button>
         </div>
 
         {loading ? (
