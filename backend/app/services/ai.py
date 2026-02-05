@@ -2,7 +2,6 @@ from app.core.config import settings
 from google import genai
 from google.genai import types
 import json
-import logging
 from docling.document_converter import DocumentConverter
 
 class AIService:

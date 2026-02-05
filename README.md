@@ -287,3 +287,5 @@ Below are some screenshots of the DiVeL application in action.
 ![User Profile](assets/images/Screenshot%202025-12-27%20at%2021-35-44%20Divel%20-%20Digital%20Evidence%20Locker.png)
 *User profile and role management.*
 
+![[Video Proof]](assets/video/Divel_Video_Proof.mp4)
+*Video Proof*

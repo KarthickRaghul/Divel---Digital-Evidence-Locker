@@ -13,8 +13,8 @@ echo "🚀 Starting Digital Evidence Locker..."
 
 # Start Backend
 echo "🔐 Launching Backend (FastAPI)..."
-source venv/bin/activate
 cd backend
+source .venv/bin/activate
 python -m uvicorn main:app --reload --port 8000 &
 BACKEND_PID=$!
 cd ..
