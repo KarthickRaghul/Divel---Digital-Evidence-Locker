@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/v1';
+const API_URL = 'http://localhost:8046/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -12,12 +12,12 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   let token = localStorage.getItem('token');
   console.log('DEBUG: Interceptor running for', config.url);
-  
+
   if (token) {
     // Remove quotes if they were accidentally stored
     token = token.replace(/^"(.*)"$/, '$1');
     console.log('DEBUG: Token found:', token ? 'Yes (starts with ' + token.substring(0, 10) + '...)' : 'No');
-    
+
     config.headers.Authorization = `Bearer ${token}`;
     console.log('DEBUG: Authorization header set:', config.headers.Authorization);
   }

@@ -39,14 +39,12 @@ class LocalTable:
         # Remove existing with same ID (simple update)
         # Handle case where list is dict (legacy/bug compat)
         target_list = data.get(self.table_type, [])
+        target_list = data.get(self.table_type, [])
         if isinstance(target_list, dict):
-            # If it's a dict, we convert or handle it. 
-            # For seeding, we might want to just overwrite properly?
-            # Let's assume list for now as per this script's design, 
-            # or converting dict to list values if needed.
-            # But simpler: just append to list. If it was dict, we might break schema.
-            # Let's trust DatabaseService expects list.
-           pass
+            # Detect legacy/incompatible dict format and reset to list
+            print(f"Warning: '{self.table_type}' is a dict, resetting to list for compatibility.")
+            target_list = []
+            data[self.table_type] = target_list
         
         target_list = [i for i in target_list if i.get(key) != Item.get(key)]
         

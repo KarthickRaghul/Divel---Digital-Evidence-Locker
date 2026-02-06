@@ -14,3 +14,7 @@ tldextract
 validators
 beautifulsoup4
 yt_dlp
+transformers
+timm
+facenet-pytorch
+moviepy

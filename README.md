@@ -207,7 +207,7 @@ cd backend
 source venv/bin/activate
 uvicorn app.main:app --reload
 ```
-> The API will be available at `http://localhost:8000`.
+> The API will be available at `http://localhost:8046`.
 
 ### Terminal 4: Start Frontend UI
 This runs the user interface.

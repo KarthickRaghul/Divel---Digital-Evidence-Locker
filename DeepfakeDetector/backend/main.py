@@ -7,11 +7,11 @@ import uuid
 import sys
 import numpy as np
 
-# Ensure we can import local modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Ensure we can import local modules (add parent dir)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from inference.predictor import HybridPredictor
-from inference.audio import AudioForensics
+from inference.audio_predictor import AudioForensics
 from utils.url_loader import download_from_url
 from utils.url_loader import download_from_url
 from utils.report_generator import generate_report

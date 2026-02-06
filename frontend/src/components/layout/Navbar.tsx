@@ -14,11 +14,11 @@ import {
 } from '@/components/ui/select';
 
 const navItems = [
+  { path: '/', label: 'Deepfake Detector', icon: ScanFace },
   { path: '/dashboard', label: 'Dashboard', icon: Home },
   { path: '/knowledge-graph', label: 'Knowledge Graph', icon: GitBranch },
   { path: '/heatmap', label: 'Heatmap', icon: Map },
   { path: '/chatbot', label: 'Chatbot', icon: MessageSquare },
-  { path: '/', label: 'Deepfake Detector', icon: ScanFace },
 ];
 
 const roleLabels: Record<UserRole, string> = {

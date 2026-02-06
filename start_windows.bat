@@ -33,7 +33,7 @@ echo Installing backend dependencies...
 pip install -r requirements.txt
 
 echo Starting Backend Server (New Window)...
-start "Divel Backend" cmd /k "call venv\Scripts\activate && uvicorn app.main:app --reload"
+start "Divel Backend" cmd /k "call venv\Scripts\activate && uvicorn app.main:app --reload --port 8046"
 
 cd ..
 
@@ -54,7 +54,7 @@ cd ..
 echo.
 echo ===================================================
 echo   System Started Successfully!
-echo   Backend: http://localhost:8000
+echo   Backend: http://localhost:8046
 echo   Frontend: http://localhost:5173
 echo ===================================================
 echo.

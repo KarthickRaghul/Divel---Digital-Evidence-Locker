@@ -15,7 +15,7 @@ echo "🚀 Starting Digital Evidence Locker..."
 echo "🔐 Launching Backend (FastAPI)..."
 source .venv/bin/activate
 cd backend
-python -m uvicorn main:app --reload --port 8000 &
+../.venv/bin/python -m uvicorn main:app --reload --port 8046 &
 BACKEND_PID=$!
 cd ..
 
@@ -30,9 +30,9 @@ FRONTEND_PID=$!
 cd ..
 
 echo "✅ System Running!"
-echo "   - Backend: http://127.0.0.1:8000"
+echo "   - Backend: http://127.0.0.1:8046"
 echo "   - Frontend: http://localhost:5173"
-echo "   - API Docs: http://127.0.0.1:8000/docs"
+echo "   - API Docs: http://127.0.0.1:8046/docs"
 echo "Press Ctrl+C to stop both servers."
 
 wait
