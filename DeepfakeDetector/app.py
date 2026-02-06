@@ -3,6 +3,7 @@ import os
 import shutil
 from datetime import datetime
 from inference.predictor import HybridPredictor
+from inference.audio_predictor import AudioPredictor
 from utils.report_generator import generate_report
 from utils.url_loader import download_from_url
 
@@ -24,7 +25,12 @@ st.sidebar.info(
 def load_predictor():
     return HybridPredictor(device='cpu')
 
+@st.cache_resource
+def load_audio_predictor():
+    return AudioPredictor()
+
 predictor = load_predictor()
+audio_predictor = load_audio_predictor()
 
 # Main Interface with Tabs
 st.write("Upload a file or paste a URL to analyze authenticity.")
@@ -54,6 +60,21 @@ with tab2:
     
     url_input = st.text_input("Enter URL to check for phishing")
     
+    st.divider()
+    st.markdown("### 📥 Deepfake Content Analysis")
+    st.caption("Download video/image from this URL and run Deepfake Detection")
+
+    if st.button("🚀 Analyze Media Content"):
+        with st.spinner("Downloading media from URL..."):
+            res = download_from_url(url_input)
+            
+            if res['file_path']:
+                filename = res['file_path']
+                url_forensic_info = res['url_info']
+                st.success(f"Successfully downloaded: {os.path.basename(filename)}")
+            else:
+                st.error(f"Download failed: {res.get('error')}")
+
     if st.button("🔍 Check URL Security") and url_input:
         with st.spinner("Analyzing URL security..."):
             try:
@@ -163,7 +184,43 @@ with tab3:
     
     if audio_file:
         st.audio(audio_file, format='audio/wav')
-        st.info("Audio loaded. Advanced audio analysis coming soon.")
+        
+        # Save audio to temp
+        with open("temp_audio", "wb") as f:
+            f.write(audio_file.getbuffer())
+        
+        # Determine extension
+        audio_ext = audio_file.name.split('.')[-1]
+        audio_filename = f"temp_audio.{audio_ext}"
+        shutil.move("temp_audio", audio_filename)
+        
+        if st.button("🔍 Analyze Audio Authenticity"):
+            with st.spinner("Decoding Audio Spectrograms..."):
+                try:
+                    audio_results = audio_predictor.predict(audio_filename)
+                    
+                    # Display Results
+                    a_label = audio_results['label']
+                    a_color = "green" if a_label == "REAL" else "red"
+                    
+                    st.markdown(f"<h2 style='text-align: center; color: {a_color};'>{a_label}</h2>", unsafe_allow_html=True)
+                    
+                    a_col1, a_col2 = st.columns(2)
+                    with a_col1:
+                        st.metric("Fake Probability", f"{audio_results['fake_prob']*100:.2f}%")
+                    with a_col2:
+                        st.metric("Real Probability", f"{audio_results['real_prob']*100:.2f}%")
+                    
+                    # Breakdown
+                    st.divider()
+                    st.subheader("🔊 Audio Feature Breakdown")
+                    st.json(audio_results['breakdown'])
+                    
+                except Exception as e:
+                    st.error(f"Audio analysis error: {e}")
+                finally:
+                    if os.path.exists(audio_filename):
+                        os.remove(audio_filename)
 
 
 # Process the file if available

@@ -18,6 +18,8 @@ interface AnalysisResult {
 }
 
 const DeepfakeDetector: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<'upload' | 'url'>('upload');
+    const [urlInput, setUrlInput] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -73,6 +75,30 @@ const DeepfakeDetector: React.FC = () => {
         }
     };
 
+    const handleUrlAnalyze = async () => {
+        if (!urlInput) return;
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
+        const formData = new FormData();
+        formData.append('url', urlInput);
+
+        try {
+            const endpoint = 'http://localhost:8000/analyze/url';
+            const res = await axios.post(endpoint, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setResult(res.data);
+            if (res.data.error) setError(res.data.error);
+        } catch (err) {
+            console.error(err);
+            setError("URL Analysis Failed. Backend error.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const getResultAsset = () => {
         if (!result) return null;
         if (result.verdict === 'REAL') {
@@ -114,54 +140,97 @@ const DeepfakeDetector: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
-                    {/* Upload Section */}
+                    {/* Input Section */}
                     <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-2xl">
-                        <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                            <Upload className="w-6 h-6 text-primary" /> Upload Media
-                        </h2>
 
-                        <div
-                            {...getRootProps()}
-                            className={`
-                border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300
-                flex flex-col items-center justify-center min-h-[300px]
-                ${isDragActive ? 'border-primary bg-primary/10 scale-[1.02]' : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/5'}
-              `}
-                        >
-                            <input {...getInputProps()} />
-                            {file ? (
-                                <div className="space-y-4">
-                                    {preview && (
-                                        file.type.startsWith('video') ?
-                                            <video src={preview} className="max-h-48 mx-auto rounded shadow-md" controls /> :
-                                            <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded shadow-md" />
-                                    )}
-                                    <div className="flex items-center gap-2 justify-center text-lg font-medium">
-                                        <File className="w-5 h-5" /> {file.name}
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">Click to change file</p>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center mb-6">
-                                        <Upload className="w-10 h-10 text-muted-foreground" />
-                                    </div>
-                                    <p className="text-xl font-medium mb-2">Drag & drop or Click to Upload</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Supports Video (MP4, AVI), Audio (WAV, MP3), and Images
-                                    </p>
-                                </>
-                            )}
+                        {/* Tabs */}
+                        <div className="flex gap-4 mb-6 border-b border-white/10 pb-2">
+                            <button
+                                onClick={() => setActiveTab('upload')}
+                                className={`text-lg font-semibold px-4 py-2 rounded-lg transition-all ${activeTab === 'upload' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-white'}`}
+                            >
+                                <Upload className="w-5 h-5 inline mr-2" /> Upload File
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('url')}
+                                className={`text-lg font-semibold px-4 py-2 rounded-lg transition-all ${activeTab === 'url' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-white'}`}
+                            >
+                                <Loader2 className="w-5 h-5 inline mr-2" /> Paste URL
+                            </button>
                         </div>
 
-                        {file && (
-                            <button
-                                onClick={handleAnalyze}
-                                disabled={loading}
-                                className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-4 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                            >
-                                {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Analyze Media"}
-                            </button>
+                        {activeTab === 'upload' ? (
+                            <>
+                                <div
+                                    {...getRootProps()}
+                                    className={`
+                        border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300
+                        flex flex-col items-center justify-center min-h-[300px]
+                        ${isDragActive ? 'border-primary bg-primary/10 scale-[1.02]' : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/5'}
+                    `}
+                                >
+                                    <input {...getInputProps()} />
+                                    {file ? (
+                                        <div className="space-y-4">
+                                            {preview && (
+                                                file.type.startsWith('video') ?
+                                                    <video src={preview} className="max-h-48 mx-auto rounded shadow-md" controls /> :
+                                                    <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded shadow-md" />
+                                            )}
+                                            <div className="flex items-center gap-2 justify-center text-lg font-medium">
+                                                <File className="w-5 h-5" /> {file.name}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">Click to change file</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center mb-6">
+                                                <Upload className="w-10 h-10 text-muted-foreground" />
+                                            </div>
+                                            <p className="text-xl font-medium mb-2">Drag & drop or Click to Upload</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Supports Video (MP4, AVI, WEBM), Audio (WAV, MP3), and Images
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+
+                                {file && (
+                                    <button
+                                        onClick={handleAnalyze}
+                                        disabled={loading}
+                                        className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-4 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                                    >
+                                        {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Analyze File"}
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <div className="space-y-6 min-h-[300px] flex flex-col justify-center">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-muted-foreground">Media URL</label>
+                                        <input
+                                            type="text"
+                                            placeholder="https://example.com/video.mp4"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-lg focus:outline-none focus:border-primary/50 transition-all"
+                                            value={urlInput}
+                                            onChange={(e) => setUrlInput(e.target.value)}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Supports direct links to Images, Videos, or YouTube/Social Media posts.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={handleUrlAnalyze}
+                                        disabled={loading || !urlInput}
+                                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                                    >
+                                        {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Analyze from URL"}
+                                    </button>
+                                </div>
+                            </>
                         )}
 
                         {error && (

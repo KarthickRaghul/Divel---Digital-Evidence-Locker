@@ -21,3 +21,5 @@ beautifulsoup4
 lxml
 validators
 tldextract
+transformers
+soundfile

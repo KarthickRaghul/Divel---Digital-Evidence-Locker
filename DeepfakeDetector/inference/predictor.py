@@ -57,7 +57,7 @@ class HybridPredictor:
         return model
 
     def predict(self, input_path):
-        is_video = input_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv'))
+        is_video = input_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm'))
         
         # Quality Check
         quality_data = check_image_quality(input_path)   
@@ -86,9 +86,49 @@ class HybridPredictor:
             if not faces: faces = [img]
 
         if not faces:
-            results['label'] = "No Faces Found"
-            return results
+            # FALLBACK: If no faces found, use center crop of the image
+            # This allows the model to analyze context artifacts even if face detection fails
+            # For video frames, we might have skipped frames, but if ALL failed, we fallback.
+            if is_video:
+                 # If video face detection failed completely, we likely rely on just a few frames
+                 # Let's try to just grab the first available frame if possible
+                 # But self.face_detector.process_video returns faces. 
+                 # We need a way to get raw frames if faces fail.
+                 # Re-opening valid fallback:
+                 cap = cv2.VideoCapture(input_path)
+                 ret, frame = cap.read()
+                 cap.release()
+                 if ret:
+                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                     img = Image.fromarray(frame_rgb)
+                     # Center crop 224x224
+                     w, h = img.size
+                     left = (w - 224)/2
+                     top = (h - 224)/2
+                     right = (w + 224)/2
+                     bottom = (h + 224)/2
+                     faces = [img.crop((left, top, right, bottom))]
+            else:
+                 # Single image fallback
+                 w, h = img.size
+                 # If image is smaller than 224, resize it up
+                 if w < 224 or h < 224:
+                     img = img.resize((224, 224))
+                     faces = [img]
+                 else:
+                     # Center crop
+                     left = (w - 224)/2
+                     top = (h - 224)/2
+                     right = (w + 224)/2
+                     bottom = (h + 224)/2
+                     faces = [img.crop((left, top, right, bottom))]
             
+            # Update label to warn user
+            if not faces: # Should be impossible now
+                 results['label'] = "Analysis Failed (No Content)"
+                 return results
+            
+            print("Warning: No faces detected. Falling back to center crop analysis.")
         results['faces_found'] = len(faces)
         
         # Batch preparation
@@ -107,8 +147,9 @@ class HybridPredictor:
             eff_probs = torch.softmax(full_out, dim=1)
             
         avg_eff_probs = torch.mean(eff_probs, dim=0)
-        eff_fake_score = avg_eff_probs[1].item()
-        eff_real_score = avg_eff_probs[0].item()
+        # USER FEEDBACK: Invert logic (Swap 0 and 1)
+        eff_fake_score = avg_eff_probs[0].item() # Was 1
+        eff_real_score = avg_eff_probs[1].item() # Was 0
         
         results['breakdown']['EfficientNet'] = eff_fake_score
         
