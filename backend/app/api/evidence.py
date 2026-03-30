@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from typing import Optional
-from app.api.v1.endpoints import auth
+from app.api import auth
 from app.services.storage import storage
 from app.services.database import db
 from app.services.blockchain import blockchain

@@ -3,7 +3,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # API
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/api"
     PROJECT_NAME: str = "Digital Evidence Locker Backend"
     
     # AWS
