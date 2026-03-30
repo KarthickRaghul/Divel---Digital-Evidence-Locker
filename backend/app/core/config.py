@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import Optional
+
 
 class Settings(BaseSettings):
     # API
@@ -10,9 +12,9 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID: Optional[str] = None
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
     AWS_REGION: str = "eu-north-1"
-    S3_BUCKET_NAME: str = "forensichain-genai-data-2814"
-    DYNAMODB_TABLE_CASES: str = "forensichain-cases"
-    DYNAMODB_TABLE_EVIDENCE: str = "forensichain-metadata"
+    S3_BUCKET_NAME: Optional[str] = None
+    DYNAMODB_TABLE_CASES: Optional[str] = None
+    DYNAMODB_TABLE_EVIDENCE: Optional[str] = None
 
     # Blockchain
     BLOCKCHAIN_RPC_URL: str = "http://127.0.0.1:8545"
@@ -26,12 +28,12 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "llama3"
 
     # Security
-    SECRET_KEY: str = "supersecretkeydefaultsfortestingonly"
+    SECRET_KEY: str = Field(..., min_length=32)
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     class Config:
-        import os
-        env_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
-
+        env_file = ".env"
+        case_sensitive = True
+# Singleton instance
 settings = Settings()

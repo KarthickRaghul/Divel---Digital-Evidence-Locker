@@ -96,3 +96,7 @@ react-bits-mcp-server/
 ##Deepfake Detector
 temp_uploads/
 temp_downloads/
+local_db.json
+
+blockchain/artifacts/
+blockchain/cache/S
