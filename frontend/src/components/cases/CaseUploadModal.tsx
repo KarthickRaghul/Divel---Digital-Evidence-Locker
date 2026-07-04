@@ -195,16 +195,24 @@ export const CaseUploadModal: React.FC<CaseUploadModalProps> = ({
         dateOfOffence,
         dateOfReport,
         sceneOfCrime,
-        latitude,
-        longitude,
-        contrabandType: contrabandType || null,
-        contrabandQuantity: contrabandQuantity || null,
-        vehicleDetails: vehicleDetails || null,
-        accused,
+        latitude: parseFloat(latitude) || 0.0,
+        longitude: parseFloat(longitude) || 0.0,
+        contrabandType: contrabandType || undefined,
+        contrabandQuantity: contrabandQuantity || undefined,
+        vehicleDetails: vehicleDetails || undefined,
+        accused: accused.map((a) => ({
+          name: a.name,
+          fatherName: a.fatherName || undefined,
+          age: a.age || undefined,
+          gender: a.gender || undefined,
+          address: a.address || undefined,
+          mobile: a.mobile || undefined,
+          status: a.status || 'Under Investigation',
+        })),
         customFields,
         publicAlertEnabled,
-        publicAlertMessage: publicAlertEnabled ? publicAlertMessage : null,
-        publicAlertMobile: publicAlertEnabled ? publicAlertMobile : null,
+        publicAlertMessage: publicAlertEnabled ? publicAlertMessage : undefined,
+        publicAlertMobile: publicAlertEnabled ? publicAlertMobile : undefined,
       };
 
       const newCase = await cases.create(casePayload);
@@ -224,7 +232,7 @@ export const CaseUploadModal: React.FC<CaseUploadModalProps> = ({
 
       toast({
         title: 'Case Uploaded Successfully',
-        description: 'The case has been registered and is now available in the system.',
+        description: `Case registered. Blockchain TX: ${newCase.tx_hash || 'Pending'}`,
       });
       onOpenChange(false);
     } catch (error) {

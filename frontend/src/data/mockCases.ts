@@ -291,6 +291,10 @@ export const caseStatuses = [
   'Pending Trial',
   'Closed',
   'Convicted',
+  'Charge Sheet Filed',
+  'Arrested',
+  'Bail Granted',
+  'Acquitted',
 ];
 
 export const contrabandTypes = [

@@ -81,7 +81,7 @@ const Heatmap: React.FC = () => {
     const fetchCases = async () => {
       try {
         const data = await import('@/services/api').then(m => m.cases.list());
-        setCasesData(data);
+        setCasesData(data.cases || []);
       } catch (error) {
         console.error("Failed to fetch cases:", error);
       } finally {

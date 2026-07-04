@@ -90,6 +90,24 @@ This represents a modern production system design where compute is ephemeral (La
 
 ---
 
+## 4.1 Deepfake Detector Microservice
+
+This project also includes a standalone `DeepfakeDetector` microservice under `DeepfakeDetector/backend`.
+
+- Uses FastAPI to expose:
+  - `POST /predict/image`
+  - `POST /predict/video`
+  - `POST /predict/url`
+- CPU-friendly ensemble model configuration for hackathon use:
+  - `efficientnet_b0`
+  - `resnet34`
+  - `xception`
+  - `swin_base_patch4_window7_224`
+- Frontend integration is available at `frontend/src/pages/DeepfakeDetector.tsx`.
+- Results show classification, confidence, and individual model scores.
+
+---
+
 ## 5. Cost Breakdown
 
 **Current Cost**: ~$4–5 USD
@@ -204,7 +222,7 @@ npx hardhat run scripts/deploy.js --network localhost
 This runs the core logic and AI agents.
 ```bash
 cd backend
-source venv/bin/activate
+source venv/bin/activate #(venv) PS C:\Users\Athishaya k\Divel---Digital-Evidence-Locker\backend> .\venv\Scripts\python.exe -m uvicorn main:app --reload
 uvicorn app.main:app --reload
 ```
 > The API will be available at `http://localhost:8046`.
@@ -215,6 +233,10 @@ This runs the user interface.
 cd frontend
 npm run dev
 ```
+### Terminal 5:deepfake
+cd DeepfakeDetector/backend
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000   #python main.py
 > Open your browser at `http://localhost:5173`.
 
 ---

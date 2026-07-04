@@ -1,5 +1,5 @@
 import React from 'react';
-import { Case } from '@/data/mockCases';
+import { Case } from '@/types/case';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Calendar, MapPin, Users, FileText } from 'lucide-react';
@@ -10,11 +10,16 @@ interface CaseCardProps {
   caseData: Case;
 }
 
-const statusColors: Record<Case['status'], string> = {
+const statusColors: Record<string, string> = {
   'Under Investigation': 'bg-warning/10 text-warning border-warning/20',
   'Pending Trial': 'bg-info/10 text-info border-info/20',
   'Closed': 'bg-muted text-muted-foreground border-muted',
   'Convicted': 'bg-success/10 text-success border-success/20',
+  'Charge Sheet Filed': 'bg-info/10 text-info border-info/20',
+  'Arrested': 'bg-destructive/10 text-destructive border-destructive/20',
+  'Bail Granted': 'bg-success/10 text-success border-success/20',
+  'Acquitted': 'bg-success/10 text-success border-success/20',
+  'Archived': 'bg-muted text-muted-foreground border-muted',
 };
 
 export const CaseCard: React.FC<CaseCardProps> = ({ caseData }) => {
@@ -29,7 +34,7 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseData }) => {
                 </h3>
                 <p className="text-sm text-muted-foreground">{caseData.district}</p>
               </div>
-              <Badge variant="outline" className={cn('shrink-0', statusColors[caseData.status])}>
+              <Badge variant="outline" className={cn('shrink-0', statusColors[caseData.status] || 'bg-muted text-muted-foreground border-muted')}>
                 {caseData.status}
               </Badge>
             </div>
